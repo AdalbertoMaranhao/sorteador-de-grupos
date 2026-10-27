@@ -37,7 +37,7 @@ O progresso fica somente no armazenamento local do navegador ou PWA utilizado e 
 
 Publique todos os arquivos em uma hospedagem com **HTTPS**, como o GitHub Pages, e acesse o endereço pelo celular. Abrir o arquivo `index.html` diretamente permite usar o sorteador, mas não habilita a instalação nem o cache offline.
 
-- **Android:** no Chrome, toque em **Instalar aplicativo** quando o botão aparecer. Também é possível usar o menu do navegador e escolher **Instalar aplicativo** ou **Adicionar à tela inicial**.
+- **Android:** no Chrome, abra o menu do navegador e escolha **Instalar aplicativo** ou **Adicionar à tela inicial**.
 - **iPhone/iPad:** no Safari, abra **Compartilhar → Adicionar à Tela de Início** e confirme em **Adicionar**. Ative **Abrir como App**, caso essa opção apareça.
 
 Espere a primeira página carregar completamente com internet antes de usar offline. Depois, abra pelo ícone da tela inicial: o sorteio de equipes, o sorteio de apresentação, o progresso de quem já apresentou e a exportação de PDF funcionam sem conexão. A divisão dos alunos em equipes continua somente na página atual.
@@ -49,7 +49,7 @@ Para testar no computador, execute `python3 -m http.server 8000` na pasta do pro
 - `index.html`: estrutura da página.
 - `style.css`: estilos e layout responsivo.
 - `script.js`: sorteio, distribuição, exibição dos resultados e geração do PDF.
-- `pwa.js`: registro do service worker e interface de instalação.
+- `pwa.js`: registro do service worker para uso offline.
 - `manifest.webmanifest`: nome, aparência, escopo e ícones do aplicativo instalado.
 - `sw.js`: cache dos arquivos para uso offline.
 - `icons/`: ícones PNG para Android e iOS.
