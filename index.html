@@ -32,6 +32,12 @@
       </aside>
 
       <form id="raffle-form" class="form-grid">
+        <label class="field field-wide">
+          <span>Nome do sorteio</span>
+          <input id="raffle-name" type="text" maxlength="100" placeholder="Ex: Biologia - Turma A" aria-describedby="raffle-name-help">
+          <small id="raffle-name-help">Usado no título e no nome do PDF. Você pode alterar depois do sorteio.</small>
+        </label>
+
         <label class="field">
           <span>Quantidade de equipes</span>
           <input id="team-count" type="number" min="1" value="4" required>

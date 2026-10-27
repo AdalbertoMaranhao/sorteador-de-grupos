@@ -9,6 +9,7 @@ Aplicação web simples para dividir alunos em equipes de forma aleatória. Pode
 - Embaralha os alunos e distribui as equipes com tamanhos equilibrados; a diferença entre equipes é de no máximo um aluno.
 - Permite sortear o próximo grupo que deve apresentar, informando os grupos que já apresentaram.
 - Exporta a lista de equipes em PDF, sem bibliotecas externas.
+- Permite nomear o sorteio e usar esse nome no título e no arquivo PDF exportado.
 - Funciona no navegador e não envia os dados dos alunos para um servidor.
 - Pode ser instalado como PWA no Android e no iPhone e usado offline após o primeiro acesso completo.
 
@@ -18,6 +19,8 @@ Aplicação web simples para dividir alunos em equipes de forma aleatória. Pode
 2. Abra `index.html` em um navegador atualizado.
 3. Informe a quantidade de equipes e o total de alunos, ou cole uma lista de nomes.
 4. Clique em **Sortear grupos**. O botão **Exportar PDF** fica disponível após o sorteio.
+
+Preencha **Nome do sorteio** para personalizar o título e o nome do PDF (por exemplo, `Biologia - Turma A.pdf`). O campo é opcional e pode ser alterado depois do sorteio, sem mudar os grupos. Sem um nome, o arquivo será `grupos-sorteados.pdf`. Caracteres incompatíveis com nomes de arquivo são substituídos por hífens. O botão **Limpar** também apaga o nome.
 
 Para sortear grupos de apresentação, informe a quantidade de grupos e os números que já apresentaram, separados por vírgula. O grupo sorteado é acrescentado à lista automaticamente.
 

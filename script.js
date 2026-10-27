@@ -1,4 +1,6 @@
 const form = document.querySelector("#raffle-form");
+const raffleNameInput = document.querySelector("#raffle-name");
+const resultsTitle = document.querySelector("#results-title");
 const teamCountInput = document.querySelector("#team-count");
 const studentCountInput = document.querySelector("#student-count");
 const studentListInput = document.querySelector("#student-list");
@@ -13,6 +15,16 @@ const presentationDrawnInput = document.querySelector("#presentation-drawn");
 const presentationResult = document.querySelector("#presentation-result");
 
 let currentGroups = [];
+
+raffleNameInput.addEventListener("input", updateResultsTitle);
+
+function getRaffleName() {
+  return raffleNameInput.value.trim().replace(/\s+/g, " ");
+}
+
+function updateResultsTitle() {
+  resultsTitle.textContent = getRaffleName() || "Grupos sorteados";
+}
 
 studentListInput.addEventListener("input", () => {
   const names = getNamesFromTextarea();
@@ -29,6 +41,7 @@ form.addEventListener("submit", (event) => {
 
 clearButton.addEventListener("click", () => {
   form.reset();
+  updateResultsTitle();
   teamCountInput.value = "4";
   studentCountInput.value = "20";
   currentGroups = [];
@@ -213,27 +226,41 @@ function showError(message) {
 }
 
 function exportGroupsAsPdf(groups) {
-  const lines = buildPdfLines(groups);
+  const raffleName = getRaffleName();
+  const lines = buildPdfLines(groups, raffleName);
   const pdfContent = createPdfDocument(lines);
   const blob = new Blob([pdfContent], { type: "application/pdf" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
 
   link.href = url;
-  link.download = "grupos-sorteados.pdf";
+  link.download = getPdfFilename(raffleName);
   document.body.appendChild(link);
   link.click();
   link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-function buildPdfLines(groups) {
+function getPdfFilename(raffleName) {
+  const filename = raffleName
+    .replace(/[<>:"/\\|?*\u0000-\u001f\u007f]/g, "-")
+    .replace(/\.pdf$/i, "")
+    .replace(/^[.\s]+|[.\s]+$/g, "");
+
+  if (!filename || /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(filename)) {
+    return "grupos-sorteados.pdf";
+  }
+
+  return `${filename}.pdf`;
+}
+
+function buildPdfLines(groups, raffleName = "") {
   const now = new Date();
   const date = now.toLocaleDateString("pt-BR");
   const time = now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
   const totalStudents = groups.reduce((sum, group) => sum + group.students.length, 0);
   const lines = [
-    { text: "Sorteador de Grupos", size: 18, bold: true },
+    { text: raffleName || "Sorteador de Grupos", size: 18, bold: true },
     { text: `Gerado em ${date} às ${time}`, size: 10 },
     { text: `Total: ${totalStudents} alunos em ${groups.length} equipes`, size: 11 },
     { text: "", size: 10 }
@@ -294,7 +321,7 @@ function createPdfDocument(lines) {
     const pageId = nextId + 1;
 
     pageObjects.push(`<< /Length ${byteLength(stream)} >>\nstream\n${stream}\nendstream`);
-    pageObjects.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> /F2 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >> >> >> /Contents ${streamId} 0 R >>`);
+    pageObjects.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >> /F2 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >> >> >> /Contents ${streamId} 0 R >>`);
     pageIds.push(pageId);
     nextId += 2;
   });
@@ -329,13 +356,19 @@ function createPageStream(pageLines, margin) {
 }
 
 function wrapText(text, size) {
-  const maxChars = size >= 13 ? 58 : 72;
+  const maxChars = size >= 18 ? 27 : size >= 13 ? 58 : 72;
 
   if (text.length <= maxChars) {
     return [text];
   }
 
-  const words = text.split(" ");
+  const words = text.split(" ").flatMap((word) => {
+    const chunks = [];
+    for (let index = 0; index < word.length; index += maxChars) {
+      chunks.push(word.slice(index, index + maxChars));
+    }
+    return chunks;
+  });
   const lines = [];
   let currentLine = "";
 
@@ -361,10 +394,18 @@ function wrapText(text, size) {
 }
 
 function escapePdfText(text) {
-  return removeDiacritics(text)
+  return text
     .replace(/\\/g, "\\\\")
     .replace(/\(/g, "\\(")
-    .replace(/\)/g, "\\)");
+    .replace(/\)/g, "\\)")
+    .replace(/[^\x20-\x7e]/gu, (character) => {
+      const code = character.codePointAt(0);
+      // Encode Latin-1 accents as PDF octal escapes, keeping byte offsets valid.
+      if (code >= 160 && code <= 255) {
+        return `\\${code.toString(8).padStart(3, "0")}`;
+      }
+      return removeDiacritics(character).replace(/[^\x20-\x7e]/gu, "?");
+    });
 }
 
 function removeDiacritics(text) {

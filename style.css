@@ -141,6 +141,19 @@ h2 {
   font-weight: 700;
 }
 
+.field small {
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.results-header > div {
+  min-width: 0;
+}
+
+#results-title {
+  overflow-wrap: anywhere;
+}
+
 .field-wide {
   grid-column: 1 / -1;
 }
