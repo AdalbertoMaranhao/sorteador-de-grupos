@@ -35,6 +35,32 @@ button {
   cursor: pointer;
 }
 
+[hidden] {
+  display: none !important;
+}
+
+.install-panel {
+  margin-bottom: 24px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface-strong);
+  line-height: 1.5;
+}
+
+.install-panel p {
+  margin-bottom: 10px;
+}
+
+.install-panel p:last-child,
+.install-panel #install-status:empty {
+  margin-bottom: 0;
+}
+
+.install-panel #install-status:not(:empty) {
+  margin-top: 10px;
+}
+
 .app-shell {
   width: min(1180px, calc(100% - 32px));
   min-height: calc(100vh - 48px);

@@ -3,8 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0f766e">
+  <meta name="description" content="Sorteie equipes e a ordem de apresentação, com ou sem uma lista de alunos.">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Sorteador">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>Sorteador de Grupos</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,6 +23,13 @@
         <h1 id="app-title">Sorteador de Grupos</h1>
         <p>Defina a quantidade de equipes, informe o total de alunos ou cole uma lista de nomes, e gere os grupos em poucos segundos.</p>
       </div>
+
+      <aside id="install-panel" class="install-panel" aria-label="Instalar aplicativo" hidden>
+        <p><strong>Tenha o sorteador no celular</strong></p>
+        <p id="install-help">No menu do navegador, escolha <strong>Instalar aplicativo</strong> ou <strong>Adicionar à tela inicial</strong>. Após o primeiro acesso, você também pode usar sem internet.</p>
+        <button id="install-button" type="button" class="secondary-button" hidden>Instalar aplicativo</button>
+        <p id="install-status" role="status"></p>
+      </aside>
 
       <form id="raffle-form" class="form-grid">
         <label class="field">
@@ -81,5 +96,6 @@
   </main>
 
   <script src="script.js"></script>
+  <script src="pwa.js"></script>
 </body>
 </html>
