@@ -13,8 +13,97 @@ const presentationForm = document.querySelector("#presentation-form");
 const presentationCountInput = document.querySelector("#presentation-count");
 const presentationDrawnInput = document.querySelector("#presentation-drawn");
 const presentationResult = document.querySelector("#presentation-result");
+const presentationStatus = document.querySelector("#presentation-status");
+const resetPresentationsButton = document.querySelector("#reset-presentations");
+const PRESENTATION_STORAGE_KEY = "sorteador-de-grupos:presentation-progress:v1";
 
 let currentGroups = [];
+let presentationTimer = null;
+
+restorePresentationProgress();
+
+function setPresentationStatus(message, isError = false) {
+  presentationStatus.textContent = message;
+  presentationStatus.classList.toggle("error", isError);
+}
+
+function getPresentationCount() {
+  const count = Number(presentationCountInput.value);
+  return Number.isSafeInteger(count) && count > 0 ? count : null;
+}
+
+function getPresentedGroups(count) {
+  return [...new Set(presentationDrawnInput.value.split(",")
+    .map((value) => Number(value.trim()))
+    .filter((value) => Number.isInteger(value) && value >= 1 && value <= count))];
+}
+
+function showSavedPresentationStatus() {
+  const count = getPresentationCount();
+  const total = getPresentedGroups(count).length;
+  setPresentationStatus(`${total} de ${count} grupos já apresentaram. Progresso salvo neste dispositivo.`);
+}
+
+function savePresentationProgress() {
+  const count = getPresentationCount();
+  if (count === null) {
+    setPresentationStatus("Informe uma quantidade de grupos válida para salvar o progresso.", true);
+    return;
+  }
+  try {
+    localStorage.setItem(PRESENTATION_STORAGE_KEY, JSON.stringify({
+      version: 1,
+      count,
+      drawn: presentationDrawnInput.value
+    }));
+    showSavedPresentationStatus();
+  } catch {
+    setPresentationStatus("Não foi possível salvar o progresso neste navegador. Mantenha esta página aberta ou anote os grupos que já apresentaram.", true);
+  }
+}
+
+function restorePresentationProgress() {
+  try {
+    const raw = localStorage.getItem(PRESENTATION_STORAGE_KEY);
+    if (raw === null) {
+      setPresentationStatus("O progresso das apresentações é salvo automaticamente neste dispositivo.");
+      return;
+    }
+    const saved = JSON.parse(raw);
+    if (!saved || saved.version !== 1 || !Number.isSafeInteger(saved.count)
+      || saved.count < 1 || typeof saved.drawn !== "string") {
+      throw new Error("Progresso de apresentações inválido.");
+    }
+    presentationCountInput.value = String(saved.count);
+    presentationDrawnInput.value = saved.drawn;
+    showSavedPresentationStatus();
+  } catch {
+    setPresentationStatus("Não foi possível recuperar o progresso salvo neste navegador. Confira os grupos que já apresentaram antes de continuar.", true);
+  }
+}
+
+function cancelPresentationDraw() {
+  clearInterval(presentationTimer);
+  presentationTimer = null;
+}
+
+presentationCountInput.addEventListener("input", () => {
+  cancelPresentationDraw();
+  presentationResult.classList.remove("visible");
+  savePresentationProgress();
+});
+presentationDrawnInput.addEventListener("input", () => {
+  cancelPresentationDraw();
+  presentationResult.classList.remove("visible");
+  savePresentationProgress();
+});
+resetPresentationsButton.addEventListener("click", () => {
+  cancelPresentationDraw();
+  presentationDrawnInput.value = "";
+  presentationResult.classList.remove("visible");
+  presentationResult.textContent = "";
+  savePresentationProgress();
+});
 
 raffleNameInput.addEventListener("input", updateResultsTitle);
 
@@ -48,11 +137,6 @@ clearButton.addEventListener("click", () => {
   groupsContainer.innerHTML = "";
   exportButton.disabled = true;
   setSummary("Preencha os dados e clique em sortear para ver os grupos.");
-
-  presentationForm.reset();
-  presentationCountInput.value = "4";
-  presentationDrawnInput.value = "";
-  presentationResult.classList.remove("visible");
 });
 
 exportButton.addEventListener("click", () => {
@@ -69,17 +153,14 @@ presentationForm.addEventListener("submit", (event) => {
 });
 
 function drawPresentation() {
-  const count = Number.parseInt(presentationCountInput.value, 10);
+  cancelPresentationDraw();
+  const count = getPresentationCount();
   
   if (!Number.isInteger(count) || count < 1) {
     return;
   }
   
-  const drawnString = presentationDrawnInput.value;
-  const drawnNumbers = drawnString
-    .split(",")
-    .map((s) => Number.parseInt(s.trim(), 10))
-    .filter((n) => !Number.isNaN(n) && n >= 1 && n <= count);
+  const drawnNumbers = getPresentedGroups(count);
 
   const availableGroups = [];
   for (let i = 1; i <= count; i++) {
@@ -96,7 +177,7 @@ function drawPresentation() {
 
   let iterations = 0;
   const maxIterations = 15;
-  const interval = setInterval(() => {
+  presentationTimer = setInterval(() => {
     const randomIndex = Math.floor(Math.random() * availableGroups.length);
     const randomTemp = availableGroups[randomIndex];
     presentationResult.textContent = `Sorteando: Grupo ${randomTemp}...`;
@@ -104,13 +185,14 @@ function drawPresentation() {
     
     iterations++;
     if (iterations >= maxIterations) {
-      clearInterval(interval);
+      cancelPresentationDraw();
       const finalIndex = Math.floor(Math.random() * availableGroups.length);
       const finalResult = availableGroups[finalIndex];
       presentationResult.textContent = `🎉 O Grupo ${finalResult} vai apresentar!`;
       
       drawnNumbers.push(finalResult);
       presentationDrawnInput.value = drawnNumbers.join(", ");
+      savePresentationProgress();
     }
   }, 50);
 }
@@ -144,9 +226,10 @@ function drawGroups() {
   renderGroups(currentGroups, names.length > 0);
   exportButton.disabled = false;
 
-  presentationCountInput.value = teamCount;
-  presentationDrawnInput.value = "";
-  presentationResult.classList.remove("visible");
+  if (!presentationDrawnInput.value.trim() && presentationTimer === null) {
+    presentationCountInput.value = String(teamCount);
+    savePresentationProgress();
+  }
 
   const mode = names.length > 0 ? "com nomes" : "por números";
   setSummary(`${students.length} alunos distribuídos em ${teamCount} equipes ${mode}.`);

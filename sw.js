@@ -1,6 +1,6 @@
 // Increment this version whenever any file in APP_SHELL changes.
 const CACHE_PREFIX = `sorteador-${self.registration.scope}-`;
-const CACHE_NAME = `${CACHE_PREFIX}v2`;
+const CACHE_NAME = `${CACHE_PREFIX}v4`;
 const APP_SHELL = [
   "./",
   "./index.html",
